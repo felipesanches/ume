@@ -665,6 +665,7 @@ DRVLIBS += \
 	$(MESSOBJ)/tangerin.a \
 	$(MESSOBJ)/tatung.a \
 	$(MESSOBJ)/teamconc.a \
+	$(MESSOBJ)/technics.a \
 	$(MESSOBJ)/tektroni.a \
 	$(MESSOBJ)/telenova.a \
 	$(MESSOBJ)/telercas.a \
@@ -1898,6 +1899,9 @@ $(MESSOBJ)/tatung.a:            \
 $(MESSOBJ)/teamconc.a:          \
 	$(MESS_VIDEO)/comquest.o    \
 	$(MESS_DRIVERS)/comquest.o  \
+
+$(MESSOBJ)/technics.a:          \
+	$(MESS_DRIVERS)/kn5000.o    \
 
 $(MESSOBJ)/tektroni.a:          \
 	$(MESS_DRIVERS)/tek405x.o   \
