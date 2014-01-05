@@ -60,7 +60,8 @@ public:
 		, m_lcdc(*this, "hd44780")
 	{ }
 
-	//DECLARE_WRITE8_MEMBER(henry_io_w);
+	DECLARE_WRITE8_MEMBER(printer_w);
+	DECLARE_WRITE8_MEMBER(henry_io_w);
 	DECLARE_READ8_MEMBER(henry_io_r);
 	DECLARE_DRIVER_INIT(hprot1);
 private:
@@ -71,7 +72,7 @@ private:
 	required_device<hd44780_device> m_lcdc;
 };
 
-#define LOG_IO_PORTS 0
+#define LOG_IO_PORTS 1
 
 static ADDRESS_MAP_START(i80c31_prg, AS_PROGRAM, 8, hprot1_state)
 	AM_RANGE(0x0000, 0xffff) AM_ROM
@@ -114,8 +115,8 @@ static ADDRESS_MAP_START(i80c31_io, AS_IO, 8, hprot1_state)
 	AM_RANGE(0xc010,0xc010) AM_MIRROR(0x33cf) AM_DEVWRITE("hd44780", hd44780_device, data_write)
 	AM_RANGE(0xc020,0xc020) AM_MIRROR(0x33cf) AM_DEVREAD("hd44780", hd44780_device, control_read)
 	AM_RANGE(0xc030,0xc030) AM_MIRROR(0x33cf) AM_DEVREAD("hd44780", hd44780_device, data_read)
-	//AM_RANGE(MCS51_PORT_P0, MCS51_PORT_P3) AM_READWRITE(henry_io_r, henry_io_w)
-	AM_RANGE(MCS51_PORT_P0, MCS51_PORT_P3) AM_READ(henry_io_r)
+	AM_RANGE(0xc400,0xc400) AM_WRITE(printer_w)
+	AM_RANGE(MCS51_PORT_P0, MCS51_PORT_P3) AM_READWRITE(henry_io_r, henry_io_w)
 ADDRESS_MAP_END
 
 static INPUT_PORTS_START( hprot1 )
@@ -143,7 +144,7 @@ READ8_MEMBER(hprot1_state::henry_io_r)
 		{
 			UINT8 value = (ioport("inputs")->read()) & 0x67;
 #if LOG_IO_PORTS
-			printf("value:%02X\n", value);
+			//printf("READ port 1: value=%02X\n", value);
 #endif
 			return value;
 		}
@@ -155,7 +156,6 @@ READ8_MEMBER(hprot1_state::henry_io_r)
 	}
 }
 
-/*
 WRITE8_MEMBER(hprot1_state::henry_io_w)
 {
 	static UINT8 p0=0, p1=0, p2=0, p3=0;  
@@ -177,8 +177,8 @@ WRITE8_MEMBER(hprot1_state::henry_io_w)
 			if (data != p1)
 			{
 				p1=data;
-				if (data != 0xFF && data != 0xEF)
 #if LOG_IO_PORTS
+//				if (data != 0xFF && data != 0xEF)
 				printf("Write to P1: %02X\n", data);
 #endif
 			}
@@ -208,7 +208,23 @@ WRITE8_MEMBER(hprot1_state::henry_io_w)
 		}
 	}
 }
-*/
+
+WRITE8_MEMBER(hprot1_state::printer_w)
+{
+	static UINT8 old_data=0;
+	switch (offset)
+	{
+		case 0x00:
+		{
+			if (data != old_data)
+			{
+				old_data = data;
+				printf("Write to printer pins: %02X\n", data);
+			}
+			break;
+		}
+	}
+}
 
 void hprot1_state::palette_init()
 {
