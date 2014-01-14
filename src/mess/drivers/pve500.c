@@ -40,13 +40,13 @@ private:
 static ADDRESS_MAP_START(maincpu_prg, AS_PROGRAM, 8, pve500_state)
 	AM_RANGE (0x0000, 0xBFFF) AM_ROM // 48kbytes  EEPROM ICB7
 	AM_RANGE (0xC000, 0xDFFF) AM_RAM //  ICD6  RAM 8k
-	AM_RANGE (0xE000, 0xE7FF) AM_MIRROR(0x1800) AM_READWRITE (shared_ram_r, shared_ram_w) //  F5: 2kbytes RAM compartilhada (comunicacao entre os 2 processadores)
+	AM_RANGE (0xE000, 0xE7FF) AM_MIRROR(0x1800) AM_RAM AM_SHARE("sharedram") //  F5: 2kbytes RAM compartilhada (comunicacao entre os 2 processadores)
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START(subcpu_prg, AS_PROGRAM, 8, pve500_state)
 	AM_RANGE (0x0000, 0x7FFF) AM_ROM // 32KBYTES EEPROM
 	AM_RANGE (0x8000, 0xBFFF) AM_READWRITE(io_expander_r, io_expander_w) // ICG3: 16KBYTES 
-	AM_RANGE (0xC000, 0xC7FF) AM_MIRROR(0x3800) AM_READWRITE (shared_ram_r, shared_ram_w) //  F5: 2kbytes RAM compartilhada (comunicacao entre os 2 processadores)
+	AM_RANGE (0xC000, 0xC7FF) AM_MIRROR(0x3800) AM_RAM AM_SHARE("sharedram") //  F5: 2kbytes RAM compartilhada (comunicacao entre os 2 processadores)
 ADDRESS_MAP_END
 
 DRIVER_INIT_MEMBER( pve500_state, pve500 )
