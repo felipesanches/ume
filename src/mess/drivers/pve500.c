@@ -1,8 +1,9 @@
 /***************************************************************************
 
-  SONY PVE-500
+  SONY PVE-500 Editing Control Unit
+  "A/B roll edit controller for professional video editing applications"
 
-  Driver by Felipe Sanches
+  Driver by Felipe Correa da Silva Sanches <juca@members.fsf.org>
   Technical info at https://www.garoa.net.br/wiki/PVE-500
 
   Licensed under GPLv2 or later.
@@ -78,11 +79,27 @@ WRITE8_MEMBER(pve500_state::io_expander_w)
 }
 
 static MACHINE_CONFIG_START( pve500, pve500_state )
-	MCFG_CPU_ADD("maincpu", Z80, XTAL_12MHz / 2)
-	MCFG_CPU_PROGRAM_MAP(maincpu_prg)
+/*
+I think we should emulate the TOSHIBA TLCS-Z80 and instantiate it here.
+TLCS-Z80 = Z80 CPU + internal CTC + internal SIO + some other things
 
-	MCFG_CPU_ADD("subcpu", Z80, XTAL_12MHz / 2)
+The PVE-500 board uses both the internal and additional external CTCs and SIOs
+*/
+	MCFG_CPU_ADD("maincpu", Z80, XTAL_12MHz / 2) /* Actual chip is TMPZ84C015BF-6 (TOSHIBA TLCS-Z80) */
+	MCFG_CPU_PROGRAM_MAP(maincpu_prg)
+//	MCFG_Z80CTC_ADD("ctc", XTAL_?MHz, maincpu_ctc_intf)
+//	MCFG_Z80SIO_ADD("sio", XTAL_12MHz / 2, maincpu_sio_intf)
+
+	MCFG_CPU_ADD("subcpu", Z80, XTAL_12MHz / 2) /* Actual chip is TMPZ84C015BF-6 (TOSHIBA TLCS-Z80) */
 	MCFG_CPU_PROGRAM_MAP(subcpu_prg)
+//	MCFG_Z80CTC_ADD("ctc", XTAL_?MHz, subcpu_ctc_intf)
+//	MCFG_Z80SIO_ADD("sio", XTAL_12MHz / 2, subcpu_sio_intf)
+
+/* TODO:
+-> There are a few LEDs and a sequence of 7-seg displays with atotal of 27 digits
+-> Sound hardware consists of a buzzer connected to a signal of the maincpu SIO and a logic-gate that attaches/detaches it from the system clock.
+Which apparently means you can only beep the buzzer to a certain predefined tone or keep it mute.
+*/
 MACHINE_CONFIG_END
 
 ROM_START( pve500 )
