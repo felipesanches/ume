@@ -38,15 +38,15 @@ private:
 };
 
 static ADDRESS_MAP_START(maincpu_prg, AS_PROGRAM, 8, pve500_state)
-	AM_RANGE (0x0000, 0xBFFF) AM_ROM // 48kbytes  EEPROM ICB7
-	AM_RANGE (0xC000, 0xDFFF) AM_RAM //  ICD6  RAM 8k
-	AM_RANGE (0xE000, 0xE7FF) AM_MIRROR(0x1800) AM_RAM AM_SHARE("sharedram") //  F5: 2kbytes RAM compartilhada (comunicacao entre os 2 processadores)
+	AM_RANGE (0x0000, 0xBFFF) AM_ROM // ICB7: 48kbytes EEPROM
+	AM_RANGE (0xC000, 0xDFFF) AM_RAM // ICD6: 8kbytes of RAM
+	AM_RANGE (0xE000, 0xE7FF) AM_MIRROR(0x1800) AM_RAM AM_SHARE("sharedram") //  ICF5: 2kbytes of RAM shared between the two CPUs
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START(subcpu_prg, AS_PROGRAM, 8, pve500_state)
-	AM_RANGE (0x0000, 0x7FFF) AM_ROM // 32KBYTES EEPROM
-	AM_RANGE (0x8000, 0xBFFF) AM_READWRITE(io_expander_r, io_expander_w) // ICG3: 16KBYTES 
-	AM_RANGE (0xC000, 0xC7FF) AM_MIRROR(0x3800) AM_RAM AM_SHARE("sharedram") //  F5: 2kbytes RAM compartilhada (comunicacao entre os 2 processadores)
+	AM_RANGE (0x0000, 0x7FFF) AM_ROM // ICG5: 32kbytes EEPROM
+	AM_RANGE (0x8000, 0xBFFF) AM_READWRITE(io_expander_r, io_expander_w) // ICG3: I/O Expander
+	AM_RANGE (0xC000, 0xC7FF) AM_MIRROR(0x3800) AM_RAM AM_SHARE("sharedram") //  ICF5: 2kbytes of RAM shared between the two CPUs
 ADDRESS_MAP_END
 
 DRIVER_INIT_MEMBER( pve500_state, pve500 )
@@ -86,11 +86,11 @@ static MACHINE_CONFIG_START( pve500, pve500_state )
 MACHINE_CONFIG_END
 
 ROM_START( pve500 )
-	ROM_REGION( 0x10000, "maincpu", 0 )
-	ROM_LOAD("pve500.icb5",  0x00000, 0x10000, CRC(0) SHA1(0) ) //48kbyte main-cpu program
+	ROM_REGION( 0xC000, "maincpu", 0 )
+	ROM_LOAD("pve500.icb7",  0x00000, 0xC000, CRC(7b1dc6ef) SHA1(141e2baa10e27e1d1bdb15ed3401bc9d0a775f22) ) //48kbyte main-cpu program
 
 	ROM_REGION( 0x8000, "subcpu", 0 )
-	ROM_LOAD("pve500.icf3",  0x00000, 0x10000, CRC(0) SHA1(0) ) //32kbyte sub-cpu program
+	ROM_LOAD("pve500.icg5",  0x00000, 0x8000, CRC(28cca60a) SHA1(308d70062653769250327ede7a4e1a8a76fc9ab9) ) //32kbyte sub-cpu program
 ROM_END
 
 /*    YEAR  NAME    PARENT  COMPAT  MACHINE     INPUT   CLASS           INIT   COMPANY    FULLNAME                    FLAGS */
