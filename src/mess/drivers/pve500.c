@@ -18,6 +18,13 @@
 
 #include "emu.h"
 #include "cpu/z80/z80.h"
+#include "pve500.lh"
+
+#define IO_EXPANDER_PORTA 0
+#define IO_EXPANDER_PORTB 1
+#define IO_EXPANDER_PORTC 2
+#define IO_EXPANDER_PORTD 3
+#define IO_EXPANDER_PORTE 4
 
 class pve500_state : public driver_device
 {
@@ -36,6 +43,7 @@ private:
 	virtual void machine_reset();
 	required_device<cpu_device> m_maincpu;
 	required_device<cpu_device> m_subcpu;
+	UINT8 io_SEL, io_LD, io_LE, io_SC, io_KY;
 };
 
 static ADDRESS_MAP_START(maincpu_prg, AS_PROGRAM, 8, pve500_state)
@@ -46,7 +54,7 @@ ADDRESS_MAP_END
 
 static ADDRESS_MAP_START(subcpu_prg, AS_PROGRAM, 8, pve500_state)
 	AM_RANGE (0x0000, 0x7FFF) AM_ROM // ICG5: 32kbytes EEPROM
-	AM_RANGE (0x8000, 0xBFFF) AM_READWRITE(io_expander_r, io_expander_w) // ICG3: I/O Expander
+	AM_RANGE (0x8000, 0xBFFF) AM_MIRROR(0x3FF8) AM_READWRITE(io_expander_r, io_expander_w) // ICG3: I/O Expander
 	AM_RANGE (0xC000, 0xC7FF) AM_MIRROR(0x3800) AM_RAM AM_SHARE("sharedram") //  ICF5: 2kbytes of RAM shared between the two CPUs
 ADDRESS_MAP_END
 
@@ -61,6 +69,11 @@ INPUT_PORTS_END
 
 void pve500_state::machine_start()
 {
+	io_LD = 0;
+	io_SC = 0;
+	io_LE = 0;
+	io_SEL = 0;
+	io_KY = 0;
 }
 
 void pve500_state::machine_reset()
@@ -69,13 +82,58 @@ void pve500_state::machine_reset()
 
 READ8_MEMBER(pve500_state::io_expander_r)
 {
-	/* Implement-me ! */
-	return 0;
+	switch (offset){
+		case IO_EXPANDER_PORTA:
+			return io_SC;
+		case IO_EXPANDER_PORTB:
+			return io_LE;
+		case IO_EXPANDER_PORTC:
+			return io_KY;
+		case IO_EXPANDER_PORTD:
+			return io_LD;
+		case IO_EXPANDER_PORTE:
+			return io_SEL;
+		default:
+			return 0;
+	}
 }
 
 WRITE8_MEMBER(pve500_state::io_expander_w)
 {
-	/* Implement-me !*/
+	switch (offset){
+		case IO_EXPANDER_PORTA:
+			io_SC = data;
+			break;
+		case IO_EXPANDER_PORTB:
+			io_LE = data;
+			break;
+		case IO_EXPANDER_PORTC:
+			io_KY = data;
+			break;
+		case IO_EXPANDER_PORTD:
+			io_LD = data;
+			break;
+		case IO_EXPANDER_PORTE:
+			io_SEL = data;
+			for (int i=0, digit_offset=0; i<4; i++, digit_offset+=8){
+				switch (io_SC){
+					case 1: output_set_digit_value(digit_offset+0, io_LD & 0x7F); break;
+					case 2: output_set_digit_value(digit_offset+1, io_LD & 0x7F); break;
+					case 4: output_set_digit_value(digit_offset+2, io_LD & 0x7F); break;
+					case 8: output_set_digit_value(digit_offset+3, io_LD & 0x7F); break;
+					case 16: output_set_digit_value(digit_offset+4, io_LD & 0x7F); break;
+					case 32: output_set_digit_value(digit_offset+5, io_LD & 0x7F); break;
+					case 64: output_set_digit_value(digit_offset+6, io_LD & 0x7F); break;
+					case 128: output_set_digit_value(digit_offset+7, io_LD & 0x7F); break;
+					default:
+						/*software should not do it.
+              any idea how to emulate that in case it does? */ break;
+				}
+			}
+			break;
+		default:
+			break;
+	}
 }
 
 static MACHINE_CONFIG_START( pve500, pve500_state )
@@ -100,6 +158,10 @@ The PVE-500 board uses both the internal and additional external CTCs and SIOs
 -> Sound hardware consists of a buzzer connected to a signal of the maincpu SIO and a logic-gate that attaches/detaches it from the system clock.
 Which apparently means you can only beep the buzzer to a certain predefined tone or keep it mute.
 */
+
+	/* video hardware */
+	MCFG_DEFAULT_LAYOUT(layout_pve500)
+
 MACHINE_CONFIG_END
 
 ROM_START( pve500 )
