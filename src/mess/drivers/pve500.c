@@ -92,7 +92,7 @@ READ8_MEMBER(pve500_state::io_expander_r)
 		case IO_EXPANDER_PORTD:
 			return io_LD;
 		case IO_EXPANDER_PORTE:
-			return io_SEL;
+			return io_SEL & 0x0F; //This is a 4bit port.
 		default:
 			return 0;
 	}
@@ -115,19 +115,21 @@ WRITE8_MEMBER(pve500_state::io_expander_w)
 			break;
 		case IO_EXPANDER_PORTE:
 			io_SEL = data;
-			for (int i=0, digit_offset=0; i<4; i++, digit_offset+=8){
-				switch (io_SC){
-					case 1: output_set_digit_value(digit_offset+0, io_LD & 0x7F); break;
-					case 2: output_set_digit_value(digit_offset+1, io_LD & 0x7F); break;
-					case 4: output_set_digit_value(digit_offset+2, io_LD & 0x7F); break;
-					case 8: output_set_digit_value(digit_offset+3, io_LD & 0x7F); break;
-					case 16: output_set_digit_value(digit_offset+4, io_LD & 0x7F); break;
-					case 32: output_set_digit_value(digit_offset+5, io_LD & 0x7F); break;
-					case 64: output_set_digit_value(digit_offset+6, io_LD & 0x7F); break;
-					case 128: output_set_digit_value(digit_offset+7, io_LD & 0x7F); break;
-					default:
-						/*software should not do it.
-              any idea how to emulate that in case it does? */ break;
+			for (int i=0; i<4; i++){
+				if (io_SEL & (1 << i)){
+					switch (io_SC){
+						case 1:   output_set_digit_value(8*i + 0, io_LD & 0x7F); break;
+						case 2:   output_set_digit_value(8*i + 1, io_LD & 0x7F); break;
+						case 4:   output_set_digit_value(8*i + 2, io_LD & 0x7F); break;
+						case 8:   output_set_digit_value(8*i + 3, io_LD & 0x7F); break;
+						case 16:  output_set_digit_value(8*i + 4, io_LD & 0x7F); break;
+						case 32:  output_set_digit_value(8*i + 5, io_LD & 0x7F); break;
+						case 64:  output_set_digit_value(8*i + 6, io_LD & 0x7F); break;
+						case 128: output_set_digit_value(8*i + 7, io_LD & 0x7F); break;
+						default:
+							/*software should not do it.
+		            any idea how to emulate that in case it does? */ break;
+					}
 				}
 			}
 			break;
