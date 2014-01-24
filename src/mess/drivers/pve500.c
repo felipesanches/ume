@@ -100,6 +100,7 @@ READ8_MEMBER(pve500_state::io_expander_r)
 
 WRITE8_MEMBER(pve500_state::io_expander_w)
 {
+	printf("io_expander_w: offset=%d data=%02X\n", offset, data);
 	switch (offset){
 		case IO_EXPANDER_PORTA:
 			io_SC = data;
