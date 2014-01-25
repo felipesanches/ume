@@ -74,6 +74,9 @@ void pve500_state::machine_start()
 	io_LE = 0;
 	io_SEL = 0;
 	io_KY = 0;
+
+	for (int i=0; i<27; i++)
+		output_set_digit_value(i, 0xff);
 }
 
 void pve500_state::machine_reset()
